@@ -636,7 +636,19 @@
             border-radius: 6px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
         }
+        .btn-api-cfg {
+            background: #212838;
+            border: 1px solid var(--border-color);
+            color: #9ecbff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            cursor: pointer;
+            margin-right: 8px;
+        }
+        .btn-api-cfg:hover { border-color: var(--accent-blue); }
     </style>
 </head>
 <body>
@@ -770,8 +782,11 @@
         </div>
 
         <div class="status-footer">
-            <span id="status-msg">系統就緒。支援全台美股搜尋、林穎 SOP 智慧選股、風險部位試算與批次股票池回測排行榜。</span>
-            <span id="clock-display">--</span>
+            <span id="status-msg">系統就緒。支援本地端與雲端環境自動偵測。</span>
+            <div>
+                <button class="btn-api-cfg" onclick="configureCloudApiUrl()" id="btn-api-display">🌐 API: 自動</button>
+                <span id="clock-display">--</span>
+            </div>
         </div>
     </div>
 
@@ -793,19 +808,17 @@
             </div>
         </div>
 
-        <!-- 2. 升級版：林穎 SOP 策略歷史回測 & 批次股票池回測排行榜模組 -->
+        <!-- 2. 林穎 SOP 策略歷史回測 & 批次股票池回測排行榜模組 -->
         <div class="panel-title" style="color: #ce93d8;">
             <span>📊 林穎 SOP 歷史回測與排行榜</span>
             <button onclick="triggerActiveBacktestMode()" style="background:#8e24aa; border:none; color:#fff; font-size:11px; font-weight:bold; padding:3px 9px; border-radius:4px; cursor:pointer;">🚀 立即回測</button>
         </div>
         <div class="right-section">
-            <!-- 單股明細 vs 批次股票池排行榜 切換頁籤 -->
             <div class="bt-mode-tabs">
                 <button class="bt-mode-tab active" id="tab-bt-single" onclick="switchBacktestTab('single')">📈 單股回測明細</button>
                 <button class="bt-mode-tab" id="tab-bt-batch" onclick="switchBacktestTab('batch')">🏆 股票池排行榜</button>
             </div>
 
-            <!-- 共用策略與區間篩選控制項 -->
             <div class="bt-controls-grid">
                 <select id="bt-strategy" onchange="triggerActiveBacktestMode()">
                     <option value="entanglement">均線糾結突破</option>
@@ -856,7 +869,7 @@
                 </div>
             </div>
 
-            <!-- 視圖 B：批次股票池回測排行榜 (Batch Leaderboard) -->
+            <!-- 視圖 B：批次股票池回測排行榜 -->
             <div id="bt-batch-view" style="display:none;">
                 <div class="bt-controls-grid" style="margin-bottom:6px;">
                     <select id="bt-batch-pool" onchange="runBatchPoolBacktest()">
@@ -897,7 +910,7 @@
             </div>
         </div>
 
-        <!-- 3. 林穎風險控管與部位計算機 (Position Sizing Calculator) -->
+        <!-- 3. 林穎風險控管與部位計算機 -->
         <div class="panel-title" style="color: #64b5f6;">
             <span>🧮 風險控管與部位計算機</span>
             <button onclick="syncCapitalFromPortfolio()" style="background:#212838; border:1px solid var(--border-color); color:#9ecbff; font-size:10px; padding:2px 6px; border-radius:4px; cursor:pointer;">同步帳本資金</button>
@@ -958,7 +971,7 @@
             </div>
         </div>
 
-        <!-- 4. 模擬下單帳本 (Paper Trading) -->
+        <!-- 4. 模擬下單帳本 -->
         <div class="panel-title">
             <span>💰 模擬交易帳本</span>
             <button onclick="resetPortfolio()" style="background:none; border:none; color:var(--text-secondary); font-size:10px; cursor:pointer;">重置帳本</button>
@@ -1009,7 +1022,59 @@
     </div>
 
     <script>
-        const API_BASE = "http://127.0.0.1:8000";
+        // ==========================================
+        // 雲端與本地端 API 網址自動偵測與動態設定機制
+        // ==========================================
+        // 若您將後端部署至 Render 且前端獨立部署於 Vercel，可將下方 DEFAULT_CLOUD_API 改為您的 Render 網址
+        const DEFAULT_CLOUD_API = "";
+
+        function resolveApiBase() {
+            const custom = localStorage.getItem('proCustomApiBase_v3');
+            if (custom && custom.trim()) {
+                return custom.trim().replace(/\/+$/, '');
+            }
+            if (DEFAULT_CLOUD_API && DEFAULT_CLOUD_API.trim()) {
+                return DEFAULT_CLOUD_API.trim().replace(/\/+$/, '');
+            }
+            if (
+                window.location.protocol === 'file:' ||
+                window.location.hostname === 'localhost' ||
+                window.location.hostname === '127.0.0.1'
+            ) {
+                return 'http://127.0.0.1:8000';
+            }
+            // 當部署於 Render 全棧同源環境時，自動使用當前網域
+            return window.location.origin;
+        }
+
+        let API_BASE = resolveApiBase();
+
+        function updateApiDisplayButton() {
+            const btn = document.getElementById('btn-api-display');
+            if (btn) {
+                btn.innerText = `🌐 API: ${API_BASE.replace(/^https?:\/\//, '')}`;
+            }
+        }
+
+        function configureCloudApiUrl() {
+            const current = localStorage.getItem('proCustomApiBase_v3') || API_BASE;
+            const input = prompt(
+                "請輸入後端 API 伺服器網址（例如 Render 網址 https://your-api.onrender.com ；若留空則恢復自動偵測）：",
+                current
+            );
+            if (input === null) return;
+            const cleaned = input.trim().replace(/\/+$/, '');
+            if (cleaned) {
+                localStorage.setItem('proCustomApiBase_v3', cleaned);
+            } else {
+                localStorage.removeItem('proCustomApiBase_v3');
+            }
+            API_BASE = resolveApiBase();
+            updateApiDisplayButton();
+            renderWatchlist();
+            loadStockKbars();
+            triggerActiveBacktestMode();
+        }
 
         const DEFAULT_WATCHLIST = [
             { symbol: '2330', name: '台積電', market: 'TW', categories: ['半導體', 'AI'] },
@@ -1034,7 +1099,7 @@
         let currentInterval = '1d';
         let currentSubIndicator = 'MACD';
         let viewMode = 'single';
-        let backtestTabMode = 'single'; // 'single' 或 'batch'
+        let backtestTabMode = 'single';
         let isTwColorScheme = true;
 
         // 圖表實例與 Series
@@ -1253,7 +1318,7 @@
 
                 renderChartSlice(isReplayMode ? fullKbars.slice(0, replayIndex) : fullKbars);
             } catch (e) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#ef5350;">回測失敗，請確認後端 server.py 正在運行</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#ef5350;">回測失敗，請檢查 API 連線 (${escapeHtml(API_BASE)})</td></tr>`;
             }
         }
 
@@ -1330,7 +1395,7 @@
                     tbody.appendChild(tr);
                 });
             } catch (e) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#ef5350;">批次回測失敗，請確認後端 server.py 正在運行</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#ef5350;">批次回測失敗，請檢查 API 連線</td></tr>`;
             }
         }
 
@@ -1538,7 +1603,7 @@
                 document.getElementById('global-search-input').value = '';
                 renderWatchlist();
             } catch (err) {
-                alert(`找不到股票「${q}」，請確認台股代號(如 2303, 6223)、中文股名或美股代號(如 NVDA)是否正確。`);
+                alert(`找不到股票「${q}」，請確認代號或檢查右下角 API 伺服器設定。`);
             }
         }
 
@@ -1688,7 +1753,7 @@
 
         async function loadStockKbars() {
             const statusMsg = document.getElementById('status-msg');
-            statusMsg.innerText = `正在載入 ${currentSymbol} (${currentInterval}) 技術指標與風險控管參數...`;
+            statusMsg.innerText = `正在從 ${API_BASE} 載入 ${currentSymbol} (${currentInterval}) 走圖與風控資料...`;
             try {
                 const res = await fetch(`${API_BASE}/api/kbars/${encodeURIComponent(currentSymbol)}?period=6mo&interval=${currentInterval}`);
                 if (!res.ok) throw new Error("K棒讀取失敗");
@@ -1706,7 +1771,7 @@
                 fetchQuoteForWatchlist(currentSymbol);
                 statusMsg.innerText = `已載入 ${currentSymbol} 共 ${fullKbars.length} 根 K 棒與部位風險試算。`;
             } catch (e) {
-                statusMsg.innerText = `載入 ${currentSymbol} 失敗，請確認後端 server.py 已啟動。`;
+                statusMsg.innerText = `連線至 ${API_BASE} 失敗（若使用免費雲端主機，首次喚醒約需 30 秒，或點擊右下角設定 API 網址）。`;
             }
         }
 
@@ -1927,7 +1992,7 @@
                     listEl.appendChild(card);
                 });
             } catch (e) {
-                listEl.innerHTML = `<div style="color:#ef5350; font-size:11px; text-align:center; padding-top:18px;">掃描失敗，請確認後端 server.py 正在運行</div>`;
+                listEl.innerHTML = `<div style="color:#ef5350; font-size:11px; text-align:center; padding-top:18px;">掃描失敗，請檢查 API 連線設定</div>`;
             }
         }
 
@@ -2215,6 +2280,7 @@
         });
 
         window.onload = () => {
+            updateApiDisplayButton();
             initCharts();
             renderCategoryTabs();
             renderWatchlist();
