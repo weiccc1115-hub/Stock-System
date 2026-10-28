@@ -2,8 +2,8 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>林穎《學會走圖SOP》專業級台美股全市場看盤、智慧選股、風險控管與批次策略回測排行榜系統</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>林穎《學會走圖SOP》台美股看盤、智慧選股、風險控管與回測系統 (電腦/手機自適應版)</title>
     <!-- 引入 TradingView Lightweight Charts -->
     <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
     <style>
@@ -19,8 +19,9 @@
             /* 預設台股配色：紅漲綠跌 */
             --up-color: #ef5350;
             --down-color: #26a69a;
+            --mobile-nav-height: 58px;
         }
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", Roboto, sans-serif;
             background-color: var(--bg-dark);
@@ -29,11 +30,12 @@
             padding: 10px;
             display: flex;
             height: 100vh;
+            height: 100dvh;
             gap: 10px;
             overflow: hidden;
         }
 
-        /* 左側欄：搜尋、自選股、SOP多策略選股器 */
+        /* ==================== 左側欄：搜尋、自選股、SOP多策略選股器 ==================== */
         .left-sidebar {
             width: 325px;
             background-color: var(--panel-bg);
@@ -70,9 +72,9 @@
             background-color: #0d1117;
             border: 1px solid var(--border-color);
             color: #fff;
-            padding: 6px 10px;
+            padding: 7px 10px;
             border-radius: 5px;
-            font-size: 12px;
+            font-size: 13px;
             outline: none;
         }
         .search-input-group input:focus { border-color: var(--accent-blue); }
@@ -80,7 +82,7 @@
             background-color: var(--accent-blue);
             border: none;
             color: #fff;
-            padding: 0 12px;
+            padding: 0 14px;
             border-radius: 5px;
             font-size: 12px;
             font-weight: bold;
@@ -88,20 +90,20 @@
         }
         .search-dropdown {
             position: absolute;
-            top: 42px;
+            top: 44px;
             left: 10px;
             right: 10px;
             background-color: #1c2333;
             border: 1px solid #3b465e;
             border-radius: 6px;
-            max-height: 250px;
+            max-height: 260px;
             overflow-y: auto;
             z-index: 1000;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.65);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.75);
             display: none;
         }
         .search-result-item {
-            padding: 7px 10px;
+            padding: 9px 10px;
             border-bottom: 1px solid rgba(255,255,255,0.06);
             display: flex;
             justify-content: space-between;
@@ -122,18 +124,17 @@
             background: #238636;
             border: none;
             color: #fff;
-            padding: 3px 8px;
+            padding: 4px 9px;
             border-radius: 4px;
             font-size: 11px;
             cursor: pointer;
         }
-        .btn-add-watch:hover { background: #2ea043; }
 
         /* 分類標籤列 */
         .category-tabs {
             display: flex;
-            gap: 5px;
-            padding: 7px 10px;
+            gap: 6px;
+            padding: 8px 10px;
             overflow-x: auto;
             border-bottom: 1px solid var(--border-color);
             background-color: #131822;
@@ -145,7 +146,7 @@
             background-color: #212838;
             border: 1px solid var(--border-color);
             color: var(--text-secondary);
-            padding: 3px 9px;
+            padding: 4px 10px;
             border-radius: 12px;
             font-size: 11px;
             cursor: pointer;
@@ -168,7 +169,7 @@
             min-height: 140px;
         }
         .watchlist-item {
-            padding: 7px 12px;
+            padding: 9px 12px;
             border-bottom: 1px solid rgba(255,255,255,0.04);
             cursor: pointer;
             display: flex;
@@ -185,13 +186,13 @@
         .tag-badge { background-color: #262f42; padding: 1px 4px; border-radius: 3px; font-size: 9px; color: #b2b5be; }
         .item-price { text-align: right; font-size: 12px; display: flex; align-items: center; gap: 6px; }
         .btn-del-watch {
-            background: none; border: none; color: #666; cursor: pointer; font-size: 13px; padding: 2px;
+            background: none; border: none; color: #666; cursor: pointer; font-size: 14px; padding: 2px 4px;
         }
         .btn-del-watch:hover { color: #ef5350; }
 
         /* 加強版 SOP 自動選股器區塊 */
         .screener-box {
-            height: 260px;
+            height: 265px;
             border-top: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
@@ -208,7 +209,7 @@
             background-color: #0d1117;
             color: #fff;
             border: 1px solid var(--border-color);
-            padding: 4px 6px;
+            padding: 5px 6px;
             border-radius: 4px;
             font-size: 11px;
             flex: 1;
@@ -217,14 +218,13 @@
             background-color: var(--accent-gold);
             color: #000;
             border: none;
-            padding: 4px 10px;
+            padding: 5px 12px;
             border-radius: 4px;
             font-size: 11px;
             font-weight: bold;
             cursor: pointer;
             white-space: nowrap;
         }
-        .btn-scan:hover { background-color: #ffca28; }
         .screener-list {
             flex: 1;
             overflow-y: auto;
@@ -234,7 +234,7 @@
             background-color: #1b2230;
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            padding: 6px 10px;
+            padding: 7px 10px;
             margin-bottom: 6px;
             cursor: pointer;
             transition: border-color 0.15s;
@@ -263,13 +263,14 @@
             color: var(--text-secondary);
         }
 
-        /* 中央主看盤區 */
+        /* ==================== 中央主看盤區 ==================== */
         .center-main {
             flex: 1;
             display: flex;
             flex-direction: column;
             gap: 8px;
             overflow: hidden;
+            min-width: 0;
         }
         .top-bar {
             background-color: var(--panel-bg);
@@ -285,12 +286,12 @@
         .quote-header {
             display: flex;
             align-items: baseline;
-            gap: 10px;
+            gap: 8px;
         }
         .quote-header h1 { margin: 0; font-size: 18px; }
         .quote-metrics {
             display: flex;
-            gap: 16px;
+            gap: 14px;
             font-size: 12px;
         }
         .metric-box span.lbl { color: var(--text-secondary); font-size: 10px; display: block; }
@@ -302,16 +303,22 @@
             display: flex;
             gap: 5px;
             align-items: center;
+            overflow-x: auto;
+            max-width: 100%;
+            padding-bottom: 2px;
         }
+        .toolbar-actions::-webkit-scrollbar { height: 2px; }
         .btn-tool {
             background-color: #212838;
             color: var(--text-primary);
             border: 1px solid var(--border-color);
-            padding: 4px 9px;
+            padding: 5px 9px;
             border-radius: 4px;
             font-size: 11px;
             cursor: pointer;
             font-weight: bold;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
         .btn-tool.active {
             background-color: var(--accent-blue);
@@ -334,50 +341,54 @@
             border-radius: 8px;
             overflow: hidden;
             position: relative;
+            min-height: 360px;
         }
         .chart-controls-bar {
-            padding: 6px 12px;
+            padding: 6px 10px;
             background-color: var(--panel-header);
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-size: 11px;
-            flex-wrap: wrap;
             gap: 8px;
+            overflow-x: auto;
         }
-        .btn-group { display: flex; gap: 4px; align-items: center; }
+        .chart-controls-bar::-webkit-scrollbar { height: 2px; }
+        .btn-group { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
         .chk-label {
             display: flex;
             align-items: center;
-            gap: 3px;
+            gap: 2px;
             cursor: pointer;
-            padding: 2px 5px;
+            padding: 2px 4px;
             border-radius: 3px;
             user-select: none;
+            white-space: nowrap;
         }
         .crosshair-legend {
             position: absolute;
             top: 40px;
-            left: 12px;
+            left: 10px;
+            right: 65px;
             z-index: 20;
-            background: rgba(14, 17, 23, 0.82);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 4px 9px;
+            background: rgba(14, 17, 23, 0.78);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 4px 8px;
             border-radius: 5px;
             font-size: 11px;
             pointer-events: none;
             display: flex;
             flex-wrap: wrap;
-            gap: 9px;
+            gap: 7px;
         }
         #main-chart-container {
             flex: 3;
             width: 100%;
-            min-height: 230px;
+            min-height: 210px;
         }
         .sub-chart-header {
-            padding: 3px 12px;
+            padding: 4px 10px;
             background-color: #131822;
             border-top: 1px solid var(--border-color);
             border-bottom: 1px solid var(--border-color);
@@ -385,11 +396,13 @@
             justify-content: space-between;
             align-items: center;
             font-size: 11px;
+            overflow-x: auto;
+            gap: 8px;
         }
         #sub-chart-container {
             flex: 1.15;
             width: 100%;
-            min-height: 105px;
+            min-height: 100px;
         }
 
         /* 四宮格多圖模式 */
@@ -399,7 +412,7 @@
             grid-template-columns: 1fr 1fr;
             grid-template-rows: 1fr 1fr;
             gap: 8px;
-            overflow: hidden;
+            overflow-y: auto;
         }
         .quad-cell {
             background-color: var(--panel-bg);
@@ -408,6 +421,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            min-height: 190px;
         }
         .quad-header {
             padding: 6px 10px;
@@ -418,9 +432,9 @@
             display: flex;
             justify-content: space-between;
         }
-        .quad-chart-box { flex: 1; width: 100%; }
+        .quad-chart-box { flex: 1; width: 100%; min-height: 160px; }
 
-        /* 右側欄：6 大 SOP 診斷、策略回測與排行榜模組、風險部位計算機、模擬帳本、警示 */
+        /* ==================== 右側欄：6 大 SOP 診斷、回測、風險部位計算機、模擬帳本、警示 ==================== */
         .right-sidebar {
             width: 365px;
             background-color: var(--panel-bg);
@@ -440,7 +454,7 @@
         .sop-check-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 4px 8px;
+            gap: 5px 8px;
         }
         .sop-check-item {
             font-size: 11px;
@@ -467,7 +481,7 @@
         .bt-mode-tab {
             flex: 1;
             text-align: center;
-            padding: 4px 6px;
+            padding: 5px 6px;
             font-size: 11px;
             font-weight: bold;
             color: var(--text-secondary);
@@ -490,7 +504,7 @@
             background: #0d1117;
             color: #fff;
             border: 1px solid var(--border-color);
-            padding: 4px 6px;
+            padding: 5px 6px;
             border-radius: 4px;
             font-size: 11px;
             width: 100%;
@@ -552,7 +566,7 @@
             background: #0d1117;
             border: 1px solid var(--border-color);
             color: #fff;
-            padding: 4px 7px;
+            padding: 5px 7px;
             border-radius: 4px;
             font-size: 12px;
             font-weight: bold;
@@ -597,13 +611,12 @@
             background: linear-gradient(90deg, #f0b90b, #ff9800);
             color: #000;
             border: none;
-            padding: 6px 10px;
+            padding: 7px 10px;
             border-radius: 4px;
             font-size: 11px;
             font-weight: bold;
             cursor: pointer;
         }
-        .btn-apply-shares:hover { filter: brightness(1.08); }
 
         .trade-summary-grid {
             display: grid;
@@ -637,27 +650,159 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 8px;
         }
         .btn-api-cfg {
             background: #212838;
             border: 1px solid var(--border-color);
             color: #9ecbff;
-            padding: 2px 8px;
+            padding: 3px 8px;
             border-radius: 4px;
             font-size: 10px;
             cursor: pointer;
-            margin-right: 8px;
+            margin-right: 6px;
         }
-        .btn-api-cfg:hover { border-color: var(--accent-blue); }
+
+        /* ==================== 手機版專屬底部導覽列 (預設在電腦版隱藏) ==================== */
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            background-color: #121722;
+            border-top: 1px solid var(--border-color);
+            z-index: 2000;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.6);
+        }
+        .mobile-nav-btn {
+            flex: 1;
+            height: 100%;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .mobile-nav-btn .nav-icon { font-size: 16px; }
+        .mobile-nav-btn.active {
+            color: var(--accent-gold);
+            background: rgba(240, 185, 11, 0.08);
+            border-top: 2px solid var(--accent-gold);
+        }
+
+        /* ==================== 手機與平板響應式媒體查詢 (<= 980px) ==================== */
+        @media (max-width: 980px) {
+            body {
+                flex-direction: column;
+                padding: 6px;
+                padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px) + 6px);
+                height: 100dvh;
+                overflow: hidden;
+            }
+            .mobile-bottom-nav {
+                display: flex;
+            }
+            .left-sidebar, .center-main, .right-sidebar {
+                width: 100% !important;
+                flex: 1;
+                height: 100%;
+            }
+
+            /* 分頁切換模式：只顯示當前選中的手機頁籤面板 */
+            body[data-mobile-tab="chart"] .left-sidebar,
+            body[data-mobile-tab="chart"] .right-sidebar {
+                display: none !important;
+            }
+            body[data-mobile-tab="watchlist"] .center-main,
+            body[data-mobile-tab="watchlist"] .right-sidebar {
+                display: none !important;
+            }
+            body[data-mobile-tab="analysis"] .left-sidebar,
+            body[data-mobile-tab="analysis"] .center-main {
+                display: none !important;
+            }
+
+            /* 全頁上下捲動模式：三個區塊垂直堆疊可自由滑動 */
+            body[data-mobile-tab="scroll"] {
+                height: auto;
+                min-height: 100dvh;
+                overflow-y: auto;
+            }
+            body[data-mobile-tab="scroll"] .left-sidebar,
+            body[data-mobile-tab="scroll"] .center-main,
+            body[data-mobile-tab="scroll"] .right-sidebar {
+                display: flex !important;
+                height: auto;
+                flex: none;
+                overflow: visible;
+            }
+            body[data-mobile-tab="scroll"] #single-view-panel {
+                height: 460px;
+            }
+            body[data-mobile-tab="scroll"] .watchlist {
+                max-height: 220px;
+            }
+
+            /* 手機版搜尋與選股區塊自適應高度 */
+            .screener-box {
+                height: 45%;
+                min-height: 210px;
+            }
+            .top-bar {
+                padding: 6px 10px;
+                gap: 6px;
+            }
+            .quote-header h1 { font-size: 16px; }
+            .quote-metrics {
+                width: 100%;
+                justify-content: space-between;
+                gap: 6px;
+                border-top: 1px solid rgba(255,255,255,0.05);
+                padding-top: 4px;
+            }
+            .metric-box span.val { font-size: 13px; }
+            .crosshair-legend {
+                top: 36px;
+                left: 6px;
+                right: 52px;
+                font-size: 10px;
+                padding: 3px 6px;
+                gap: 5px;
+            }
+            /* 四宮格在手機轉為單欄上下排列確保K線清晰 */
+            #quad-view-panel {
+                grid-template-columns: 1fr;
+                grid-template-rows: repeat(4, 220px);
+            }
+            /* 防止 iOS Safari 點擊 input 自動放大視窗 */
+            input, select {
+                font-size: 16px !important;
+            }
+            .status-footer {
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+        }
     </style>
 </head>
-<body>
+<body data-mobile-tab="chart">
 
     <!-- ==================== 左側欄：全市場搜尋 + 自選股 + SOP智慧選股 ==================== -->
-    <div class="left-sidebar">
+    <div class="left-sidebar" id="panel-left">
         <div class="panel-title">
             <span>🔍 全台股 / 美股智慧搜尋</span>
-            <span style="font-size:10px; color:var(--text-secondary);">上市/上櫃/ETF/美股</span>
+            <span style="font-size:10px; color:var(--text-secondary);">點擊標的自動看圖</span>
         </div>
 
         <div class="search-wrapper">
@@ -700,11 +845,11 @@
     </div>
 
     <!-- ==================== 中央主看盤區：雙窗格專業圖表與走圖覆盤 ==================== -->
-    <div class="center-main">
+    <div class="center-main" id="panel-center">
         <div class="top-bar">
             <div class="quote-header">
                 <h1 id="header-symbol">2330</h1>
-                <span id="header-name" style="font-size:13px; color:var(--text-secondary);">台積電 (2330.TW)</span>
+                <span id="header-name" style="font-size:12px; color:var(--text-secondary);">台積電 (2330.TW)</span>
             </div>
 
             <div class="quote-metrics">
@@ -738,11 +883,11 @@
                 <div class="btn-group">
                     <label class="chk-label" style="color:#ff9800;"><input type="checkbox" id="chk-ma5" checked onchange="updateSeriesVisibility()">MA5</label>
                     <label class="chk-label" style="color:#4caf50;"><input type="checkbox" id="chk-ma10" checked onchange="updateSeriesVisibility()">MA10</label>
-                    <label class="chk-label" style="color:#ab47bc;"><input type="checkbox" id="chk-ma20" checked onchange="updateSeriesVisibility()">MA20(月)</label>
-                    <label class="chk-label" style="color:#29b6f6;"><input type="checkbox" id="chk-ma60" checked onchange="updateSeriesVisibility()">MA60(季)</label>
-                    <label class="chk-label" style="color:#90caf9;"><input type="checkbox" id="chk-bb" onchange="updateSeriesVisibility()">布林通道</label>
-                    <label class="chk-label" style="color:#f0b90b;"><input type="checkbox" id="chk-markers" checked onchange="updateSeriesVisibility()">買賣/回測訊號</label>
-                    <label class="chk-label" style="color:#ff5252;"><input type="checkbox" id="chk-risklines" checked onchange="drawRiskPriceLines()">停損/目標線</label>
+                    <label class="chk-label" style="color:#ab47bc;"><input type="checkbox" id="chk-ma20" checked onchange="updateSeriesVisibility()">MA20</label>
+                    <label class="chk-label" style="color:#29b6f6;"><input type="checkbox" id="chk-ma60" checked onchange="updateSeriesVisibility()">MA60</label>
+                    <label class="chk-label" style="color:#90caf9;"><input type="checkbox" id="chk-bb" onchange="updateSeriesVisibility()">布林</label>
+                    <label class="chk-label" style="color:#f0b90b;"><input type="checkbox" id="chk-markers" checked onchange="updateSeriesVisibility()">買賣訊號</label>
+                    <label class="chk-label" style="color:#ff5252;"><input type="checkbox" id="chk-risklines" checked onchange="drawRiskPriceLines()">停損目標線</label>
                 </div>
             </div>
 
@@ -762,12 +907,12 @@
 
             <div class="sub-chart-header">
                 <div class="btn-group">
-                    <span style="font-weight:bold; color:var(--text-secondary);">副圖指標:</span>
-                    <button class="btn-tool active" id="btn-ind-macd" onclick="switchSubIndicator('MACD')">MACD (12,26,9)</button>
-                    <button class="btn-tool" id="btn-ind-kd" onclick="switchSubIndicator('KD')">KD 隨機指標 (9,3,3)</button>
-                    <button class="btn-tool" id="btn-ind-rsi" onclick="switchSubIndicator('RSI')">RSI 強弱指標 (14)</button>
+                    <span style="font-weight:bold; color:var(--text-secondary);">副圖:</span>
+                    <button class="btn-tool active" id="btn-ind-macd" onclick="switchSubIndicator('MACD')">MACD</button>
+                    <button class="btn-tool" id="btn-ind-kd" onclick="switchSubIndicator('KD')">KD (9,3,3)</button>
+                    <button class="btn-tool" id="btn-ind-rsi" onclick="switchSubIndicator('RSI')">RSI (14)</button>
                 </div>
-                <div id="sub-indicator-values" style="color:var(--text-secondary);">--</div>
+                <div id="sub-indicator-values" style="color:var(--text-secondary); white-space:nowrap;">--</div>
             </div>
 
             <div id="sub-chart-container"></div>
@@ -782,16 +927,16 @@
         </div>
 
         <div class="status-footer">
-            <span id="status-msg">系統就緒。支援本地端與雲端環境自動偵測。</span>
-            <div>
+            <span id="status-msg" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">系統就緒。支援電腦與手機響應式看盤。</span>
+            <div style="display:flex; align-items:center; flex-shrink:0;">
                 <button class="btn-api-cfg" onclick="configureCloudApiUrl()" id="btn-api-display">🌐 API: 自動</button>
                 <span id="clock-display">--</span>
             </div>
         </div>
     </div>
 
-    <!-- ==================== 右側欄：6大SOP診斷 + 策略回測與排行榜模組 + 風險部位計算機 + 模擬帳本 + 警示 ==================== -->
-    <div class="right-sidebar">
+    <!-- ==================== 右側欄：6大SOP診斷 + 策略回測與排行榜 + 風險部位計算機 + 模擬帳本 + 警示 ==================== -->
+    <div class="right-sidebar" id="panel-right">
         <!-- 1. 林穎 6 大進場條件自動診斷 -->
         <div class="panel-title" style="color: var(--accent-gold);">
             <span>📋 林穎走圖 6 大 SOP 診斷</span>
@@ -811,7 +956,7 @@
         <!-- 2. 林穎 SOP 策略歷史回測 & 批次股票池回測排行榜模組 -->
         <div class="panel-title" style="color: #ce93d8;">
             <span>📊 林穎 SOP 歷史回測與排行榜</span>
-            <button onclick="triggerActiveBacktestMode()" style="background:#8e24aa; border:none; color:#fff; font-size:11px; font-weight:bold; padding:3px 9px; border-radius:4px; cursor:pointer;">🚀 立即回測</button>
+            <button onclick="triggerActiveBacktestMode()" style="background:#8e24aa; border:none; color:#fff; font-size:11px; font-weight:bold; padding:4px 10px; border-radius:4px; cursor:pointer;">🚀 立即回測</button>
         </div>
         <div class="right-section">
             <div class="bt-mode-tabs">
@@ -857,7 +1002,7 @@
                     </div>
                 </div>
 
-                <div style="max-height:115px; overflow-y:auto;">
+                <div style="max-height:125px; overflow-y:auto;">
                     <table class="mini-table">
                         <thead>
                             <tr><th>進場日</th><th>買→賣價</th><th>報酬率</th><th>出場原因</th></tr>
@@ -897,7 +1042,7 @@
                     </div>
                 </div>
 
-                <div style="max-height:145px; overflow-y:auto;">
+                <div style="max-height:150px; overflow-y:auto;">
                     <table class="mini-table">
                         <thead>
                             <tr><th>#</th><th>標的</th><th>次數</th><th>勝率</th><th>總報酬</th><th>MDD</th></tr>
@@ -913,7 +1058,7 @@
         <!-- 3. 林穎風險控管與部位計算機 -->
         <div class="panel-title" style="color: #64b5f6;">
             <span>🧮 風險控管與部位計算機</span>
-            <button onclick="syncCapitalFromPortfolio()" style="background:#212838; border:1px solid var(--border-color); color:#9ecbff; font-size:10px; padding:2px 6px; border-radius:4px; cursor:pointer;">同步帳本資金</button>
+            <button onclick="syncCapitalFromPortfolio()" style="background:#212838; border:1px solid var(--border-color); color:#9ecbff; font-size:10px; padding:3px 7px; border-radius:4px; cursor:pointer;">同步帳本資金</button>
         </div>
         <div class="right-section">
             <div class="calc-grid">
@@ -972,7 +1117,7 @@
         </div>
 
         <!-- 4. 模擬下單帳本 -->
-        <div class="panel-title">
+        <div class="panel-title" id="paper-trade-header">
             <span>💰 模擬交易帳本</span>
             <button onclick="resetPortfolio()" style="background:none; border:none; color:var(--text-secondary); font-size:10px; cursor:pointer;">重置帳本</button>
         </div>
@@ -983,17 +1128,17 @@
                 <div style="grid-column: span 2;">未實現總損益: <b id="pf-pnl">$0 (0.00%)</b></div>
             </div>
 
-            <div style="display:flex; gap:4px; margin-bottom:7px;">
-                <input type="text" id="trade-symbol" value="2330" style="width:62px; background:#0d1117; border:1px solid var(--border-color); color:#fff; padding:4px; border-radius:4px; font-size:11px; font-weight:bold;">
-                <select id="trade-action" style="background:#0d1117; border:1px solid var(--border-color); color:#fff; padding:4px; border-radius:4px; font-size:11px;">
+            <div style="display:flex; gap:5px; margin-bottom:7px;">
+                <input type="text" id="trade-symbol" value="2330" style="width:68px; background:#0d1117; border:1px solid var(--border-color); color:#fff; padding:5px; border-radius:4px; font-size:12px; font-weight:bold;">
+                <select id="trade-action" style="background:#0d1117; border:1px solid var(--border-color); color:#fff; padding:5px; border-radius:4px; font-size:12px;">
                     <option value="buy">買進</option>
                     <option value="sell">賣出</option>
                 </select>
-                <input type="number" id="trade-shares" value="1000" placeholder="股數" style="flex:1; width:55px; background:#0d1117; border:1px solid var(--border-color); color:#fff; padding:4px; border-radius:4px; font-size:11px;">
-                <button onclick="executeTrade()" style="background:var(--accent-blue); border:none; color:#fff; padding:4px 10px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">下單</button>
+                <input type="number" id="trade-shares" value="1000" placeholder="股數" style="flex:1; width:60px; background:#0d1117; border:1px solid var(--border-color); color:#fff; padding:5px; border-radius:4px; font-size:12px;">
+                <button onclick="executeTrade()" style="background:var(--accent-blue); border:none; color:#fff; padding:5px 12px; border-radius:4px; font-size:12px; font-weight:bold; cursor:pointer;">下單</button>
             </div>
 
-            <div style="max-height:105px; overflow-y:auto;">
+            <div style="max-height:115px; overflow-y:auto;">
                 <table class="mini-table">
                     <thead>
                         <tr><th>標的</th><th>股數</th><th>均價</th><th>損益</th></tr>
@@ -1008,24 +1153,43 @@
             <span>🔔 價位突破警示</span>
         </div>
         <div class="right-section" style="border-bottom:none;">
-            <div style="display:flex; gap:4px; margin-bottom:6px;">
-                <input type="text" id="alert-symbol" value="2330" style="width:58px; background:#0d1117; border:1px solid var(--border-color); color:#fff; padding:4px; border-radius:4px; font-size:11px;">
-                <select id="alert-cond" style="background:#0d1117; border:1px solid var(--border-color); color:#fff; padding:4px; border-radius:4px; font-size:11px;">
+            <div style="display:flex; gap:5px; margin-bottom:6px;">
+                <input type="text" id="alert-symbol" value="2330" style="width:64px; background:#0d1117; border:1px solid var(--border-color); color:#fff; padding:5px; border-radius:4px; font-size:12px;">
+                <select id="alert-cond" style="background:#0d1117; border:1px solid var(--border-color); color:#fff; padding:5px; border-radius:4px; font-size:12px;">
                     <option value="above">突破 ≥</option>
                     <option value="below">跌破 ≤</option>
                 </select>
-                <input type="number" id="alert-price" placeholder="目標價" style="flex:1; width:55px; background:#0d1117; border:1px solid var(--border-color); color:#fff; padding:4px; border-radius:4px; font-size:11px;">
-                <button onclick="addPriceAlert()" style="background:var(--accent-blue); border:none; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer;">新增</button>
+                <input type="number" id="alert-price" placeholder="目標價" style="flex:1; width:60px; background:#0d1117; border:1px solid var(--border-color); color:#fff; padding:5px; border-radius:4px; font-size:12px;">
+                <button onclick="addPriceAlert()" style="background:var(--accent-blue); border:none; color:#fff; padding:5px 10px; border-radius:4px; font-size:12px; cursor:pointer;">新增</button>
             </div>
-            <ul id="alert-list" style="list-style:none; padding:0; margin:0; max-height:70px; overflow-y:auto; font-size:11px; color:var(--text-secondary);"></ul>
+            <ul id="alert-list" style="list-style:none; padding:0; margin:0; max-height:80px; overflow-y:auto; font-size:11px; color:var(--text-secondary);"></ul>
         </div>
     </div>
+
+    <!-- ==================== 手機版專屬底部 App 導覽列 ==================== -->
+    <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+        <button class="mobile-nav-btn active" id="mnav-chart" onclick="switchMobileTab('chart')">
+            <span class="nav-icon">📈</span>
+            <span>看盤走圖</span>
+        </button>
+        <button class="mobile-nav-btn" id="mnav-watchlist" onclick="switchMobileTab('watchlist')">
+            <span class="nav-icon">🔍</span>
+            <span>選股/自選</span>
+        </button>
+        <button class="mobile-nav-btn" id="mnav-analysis" onclick="switchMobileTab('analysis')">
+            <span class="nav-icon">📊</span>
+            <span>風控/回測</span>
+        </button>
+        <button class="mobile-nav-btn" id="mnav-scroll" onclick="switchMobileTab('scroll')">
+            <span class="nav-icon">📜</span>
+            <span>全頁捲動</span>
+        </button>
+    </nav>
 
     <script>
         // ==========================================
         // 雲端與本地端 API 網址自動偵測與動態設定機制
         // ==========================================
-        // 若您將後端部署至 Render 且前端獨立部署於 Vercel，可將下方 DEFAULT_CLOUD_API 改為您的 Render 網址
         const DEFAULT_CLOUD_API = "";
 
         function resolveApiBase() {
@@ -1043,7 +1207,6 @@
             ) {
                 return 'http://127.0.0.1:8000';
             }
-            // 當部署於 Render 全棧同源環境時，自動使用當前網域
             return window.location.origin;
         }
 
@@ -1074,6 +1237,47 @@
             renderWatchlist();
             loadStockKbars();
             triggerActiveBacktestMode();
+        }
+
+        // ==========================================
+        // 手機版底部導覽分頁切換與圖表自動重繪
+        // ==========================================
+        function isMobileViewport() {
+            return window.innerWidth <= 980;
+        }
+
+        function switchMobileTab(tabName) {
+            document.body.setAttribute('data-mobile-tab', tabName);
+            ['chart', 'watchlist', 'analysis', 'scroll'].forEach(t => {
+                const btn = document.getElementById(`mnav-${t}`);
+                if (btn) btn.classList.toggle('active', t === tabName);
+            });
+
+            // 切換至圖表或全頁模式時，觸發圖表尺寸自適應重算
+            if (tabName === 'chart' || tabName === 'scroll') {
+                setTimeout(() => {
+                    resizeAllCharts();
+                    if (mainChart) mainChart.timeScale().fitContent();
+                    if (subChart) subChart.timeScale().fitContent();
+                }, 60);
+            }
+        }
+
+        function resizeAllCharts() {
+            const mainEl = document.getElementById('main-chart-container');
+            const subEl = document.getElementById('sub-chart-container');
+            if (mainChart && mainEl && mainEl.clientWidth > 0 && mainEl.clientHeight > 0) {
+                mainChart.applyOptions({ width: mainEl.clientWidth, height: mainEl.clientHeight });
+            }
+            if (subChart && subEl && subEl.clientWidth > 0 && subEl.clientHeight > 0) {
+                subChart.applyOptions({ width: subEl.clientWidth, height: subEl.clientHeight });
+            }
+            for (let i = 0; i < 4; i++) {
+                const qBox = document.getElementById(`quad-chart-${i}`);
+                if (quadCharts[i] && qBox && qBox.clientWidth > 0 && qBox.clientHeight > 0) {
+                    quadCharts[i].applyOptions({ width: qBox.clientWidth, height: qBox.clientHeight });
+                }
+            }
         }
 
         const DEFAULT_WATCHLIST = [
@@ -1139,7 +1343,7 @@
         }
 
         // ==========================================
-        // 1. 初始化雙窗格專業圖表 (主圖 + 副圖同步)
+        // 1. 初始化雙窗格專業圖表 (主圖 + 副圖同步 + ResizeObserver)
         // ==========================================
         function initCharts() {
             const mainEl = document.getElementById('main-chart-container');
@@ -1157,14 +1361,14 @@
 
             mainChart = LightweightCharts.createChart(mainEl, {
                 ...commonOptions,
-                width: mainEl.clientWidth,
-                height: mainEl.clientHeight || 320
+                width: mainEl.clientWidth || 340,
+                height: mainEl.clientHeight || 260
             });
 
             subChart = LightweightCharts.createChart(subEl, {
                 ...commonOptions,
-                width: subEl.clientWidth,
-                height: subEl.clientHeight || 130
+                width: subEl.clientWidth || 340,
+                height: subEl.clientHeight || 110
             });
 
             candleSeries = mainChart.addCandlestickSeries({
@@ -1213,14 +1417,12 @@
                 if (bar) updateCrosshairLegend(bar);
             });
 
-            window.addEventListener('resize', () => {
-                if (mainChart && mainEl.clientWidth > 0) {
-                    mainChart.applyOptions({ width: mainEl.clientWidth, height: mainEl.clientHeight });
-                }
-                if (subChart && subEl.clientWidth > 0) {
-                    subChart.applyOptions({ width: subEl.clientWidth, height: subEl.clientHeight });
-                }
-            });
+            window.addEventListener('resize', resizeAllCharts);
+            if (window.ResizeObserver) {
+                const ro = new ResizeObserver(() => resizeAllCharts());
+                ro.observe(mainEl);
+                ro.observe(subEl);
+            }
         }
 
         function updateCrosshairLegend(bar) {
@@ -1536,6 +1738,8 @@
             document.getElementById('trade-action').value = 'buy';
             document.getElementById('trade-shares').value = lastCalculatedShares;
             document.getElementById('status-msg').innerText = `已將 ${currentSymbol} 風險控管建議股數 (${lastCalculatedShares} 股) 帶入模擬下單欄！`;
+            const headerEl = document.getElementById('paper-trade-header');
+            if (headerEl) headerEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         // ==========================================
@@ -1739,6 +1943,12 @@
             isReplayMode = false;
             updateReplayButtons();
             renderWatchlist();
+
+            // 在手機分頁模式下，點擊股票自動切換至「📈 看盤走圖」頁籤
+            if (isMobileViewport() && document.body.getAttribute('data-mobile-tab') !== 'scroll') {
+                switchMobileTab('chart');
+            }
+
             loadStockKbars();
             runStrategyBacktest();
             if (viewMode === 'quad') switchViewMode('single');
@@ -1753,7 +1963,7 @@
 
         async function loadStockKbars() {
             const statusMsg = document.getElementById('status-msg');
-            statusMsg.innerText = `正在從 ${API_BASE} 載入 ${currentSymbol} (${currentInterval}) 走圖與風控資料...`;
+            statusMsg.innerText = `正在載入 ${currentSymbol} (${currentInterval}) 走圖與風控資料...`;
             try {
                 const res = await fetch(`${API_BASE}/api/kbars/${encodeURIComponent(currentSymbol)}?period=6mo&interval=${currentInterval}`);
                 if (!res.ok) throw new Error("K棒讀取失敗");
@@ -1771,7 +1981,7 @@
                 fetchQuoteForWatchlist(currentSymbol);
                 statusMsg.innerText = `已載入 ${currentSymbol} 共 ${fullKbars.length} 根 K 棒與部位風險試算。`;
             } catch (e) {
-                statusMsg.innerText = `連線至 ${API_BASE} 失敗（若使用免費雲端主機，首次喚醒約需 30 秒，或點擊右下角設定 API 網址）。`;
+                statusMsg.innerText = `連線至 ${API_BASE} 失敗（若使用免費雲端主機，首次喚醒約需 30 秒）。`;
             }
         }
 
@@ -1891,7 +2101,7 @@
                 })));
                 subMainSeries.setData(slice.map(i => ({ time: i.time, value: i.macd ?? 0 })));
                 subSecondSeries.setData(slice.map(i => ({ time: i.time, value: i.macd_signal ?? 0 })));
-                infoEl.innerText = `DIF: ${last.macd ?? 0} | MACD: ${last.macd_signal ?? 0} | OSC柱: ${last.macd_hist ?? 0}`;
+                infoEl.innerText = `DIF:${last.macd ?? 0} | MACD:${last.macd_signal ?? 0} | 柱:${last.macd_hist ?? 0}`;
             } else if (currentSubIndicator === 'KD') {
                 subHistSeries.applyOptions({ visible: false });
                 subSecondSeries.applyOptions({ visible: true });
@@ -2008,7 +2218,7 @@
                 const curBar = slice[slice.length - 1];
                 populateCalculatorFromBar(curBar, null);
                 renderChartSlice(slice);
-                document.getElementById('status-msg').innerText = `【走圖覆盤中】目前第 ${replayIndex} / ${fullKbars.length} 根 K 棒，部位計算機已同步更新至該 K 棒收盤價！`;
+                document.getElementById('status-msg').innerText = `【走圖覆盤中】第 ${replayIndex} / ${fullKbars.length} 根 K 棒`;
             } else {
                 const lastBar = fullKbars[fullKbars.length - 1];
                 populateCalculatorFromBar(lastBar, lastBar ? lastBar.sop : null);
@@ -2028,7 +2238,7 @@
                 populateCalculatorFromBar(curBar, null);
                 renderChartSlice(slice);
                 updateCrosshairLegend(curBar);
-                document.getElementById('status-msg').innerText = `【走圖覆盤中】進度 ${replayIndex} / ${fullKbars.length} 根 K 棒 | 當前價 ${curBar.close} 建議買進 ${lastCalculatedShares} 股`;
+                document.getElementById('status-msg').innerText = `【覆盤】${replayIndex}/${fullKbars.length} | 現價 ${curBar.close} 建議 ${lastCalculatedShares} 股`;
             } else if (nextIdx > fullKbars.length) {
                 stopAutoReplay();
                 alert("已推演至最後一根 K 棒！");
@@ -2075,6 +2285,7 @@
                 initQuadCharts();
             } else {
                 setTimeout(() => {
+                    resizeAllCharts();
                     mainChart.timeScale().fitContent();
                     subChart.timeScale().fitContent();
                 }, 50);
@@ -2089,8 +2300,8 @@
                 const box = document.getElementById(`quad-chart-${i}`);
                 box.innerHTML = '';
                 quadCharts[i] = LightweightCharts.createChart(box, {
-                    width: box.clientWidth,
-                    height: box.clientHeight || 200,
+                    width: box.clientWidth || 300,
+                    height: box.clientHeight || 180,
                     layout: { background: { type: 'solid', color: '#161b26' }, textColor: '#c9d1d9' },
                     grid: { vertLines: { color: '#212838' }, horzLines: { color: '#212838' } },
                     timeScale: { timeVisible: true, secondsVisible: false }
