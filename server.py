@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*-
+import os
 import math
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Optional, Dict, Any
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse
 import yfinance as yf
 import pandas as pd
 import numpy as np
@@ -11,11 +14,12 @@ import requests
 import uvicorn
 
 app = FastAPI(
-    title="Pro Stock Analysis & Lin Ying SOP Terminal API",
-    version="3.3.0",
-    description="支援全台股(上市/上櫃/ETF)與美股搜尋、林穎走圖SOP多策略選股、風險部位計算機、單股與批次股票池策略回測排行榜之後端服務"
+    title="Pro Stock Analysis & Lin Ying SOP Terminal API (Cloud-Ready)",
+    version="3.4.0",
+    description="支援全台股(上市/上櫃/ETF)與美股搜尋、林穎走圖SOP多策略選股、風險部位計算機、單股與批次股票池策略回測排行榜之雲端後端服務"
 )
 
+# 允許所有前端網域 (如 Vercel, GitHub Pages, 本地端) 跨域呼叫
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -139,9 +143,7 @@ def calculate_position_sizing(
     target_price: Optional[float] = None,
     market: str = "TW"
 ) -> Dict[str, Any]:
-    """
-    林穎《學會走圖SOP》核心風險控管與部位計算機
-    """
+    """林穎《學會走圖SOP》核心風險控管與部位計算機"""
     if capital <= 0 or risk_pct <= 0 or entry_price <= 0 or stop_loss <= 0:
         raise ValueError("資金、風險比例、進場價與停損價皆必須大於 0")
 
@@ -176,13 +178,13 @@ def calculate_position_sizing(
     status_level = "GOOD"
     if stop_loss_pct > 8.0:
         status_level = "WARN"
-        advice_list.append(f"停損幅度達 {stop_loss_pct}% (>8%)，代表目前股價乖離支撐較遠，建議等待拉回靠近均線再切入或縮小部位。")
+        advice_list.append(f"停損幅度達 {stop_loss_pct}% (大於8%)，代表目前股價乖離支撐較遠，建議等待拉回靠近均線再切入或縮小部位。")
     else:
         advice_list.append(f"停損幅度 {stop_loss_pct}% 控制得宜，符合林穎 SOP 近支撐買進原則。")
 
     if rr_ratio < 1.5:
         status_level = "WARN"
-        advice_list.append(f"目前風報比僅 1:{rr_ratio} (<1.5)，上方壓力較近、獲利空間受限。")
+        advice_list.append(f"目前風報比僅 1:{rr_ratio} (小於1.5)，上方壓力較近、獲利空間受限。")
     else:
         advice_list.append(f"風報比達 1:{rr_ratio}，具備波段操作優勢。")
 
@@ -583,12 +585,7 @@ def run_sop_backtest(
     eval_bars: int = 126,
     exit_mode: str = "ma10_trail"
 ) -> Dict[str, Any]:
-    """
-    林穎《學會走圖SOP》歷史策略回測引擎：
-    - 預先在完整資料集計算 MA5/10/20/60、KD、MACD、均量
-    - 針對過去半年 (eval_bars=126) 或一年 (eval_bars=252) 逐根 K 棒模擬進出場
-    - 統計：勝率 (Win Rate)、平均報酬率 (Avg Return)、最大回撤 (Max Drawdown)、累計報酬與交易明細
-    """
+    """林穎《學會走圖SOP》歷史策略回測引擎"""
     n = len(df)
     if n < 30:
         return {
@@ -860,6 +857,26 @@ def fetch_and_backtest_single(
 
 
 # ==========================================
+# 雲端健康檢查與前端靜態首頁掛載
+# ==========================================
+
+@app.get("/health")
+def health_check():
+    """供 Render / Railway 等雲端平台監測服務健康狀態"""
+    return {"status": "ok", "version": "3.4.0"}
+
+
+@app.get("/")
+def serve_frontend():
+    """若同目錄下存在 index.html，直接回傳前端頁面 (支援 Render 單一平台全棧部署)"""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    index_path = os.path.join(base_dir, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return JSONResponse({"message": "Lin Ying SOP Stock API is running. Visit /docs for API documentation."})
+
+
+# ==========================================
 # API 路由端點 (固定路徑置於動態路徑之前)
 # ==========================================
 
@@ -871,10 +888,7 @@ def backtest_stock_pool_leaderboard(
     sort_by: str = Query("total_return", description="排名依據: total_return (總報酬) 或 win_rate (勝率)"),
     symbols: Optional[str] = Query(None, description="自選股代號清單，以逗號分隔")
 ):
-    """
-    林穎《學會走圖SOP》批次股票池回測排行榜 API：
-    一鍵平行統計自選股池或熱門股池過去半年/一年執行指定策略之勝率與總報酬排名
-    """
+    """林穎《學會走圖SOP》批次股票池回測排行榜 API"""
     if symbols:
         scan_list = [s.strip() for s in symbols.split(",") if s.strip()]
     else:
@@ -883,7 +897,6 @@ def backtest_stock_pool_leaderboard(
             "2454", "2382", "3017", "2603", "NVDA", "AAPL", "AMD"
         ]
 
-    # 去重並限制單次最大掃描數量確保極速回應
     unique_syms = []
     seen = set()
     for s in scan_list:
@@ -908,13 +921,11 @@ def backtest_stock_pool_leaderboard(
             try:
                 res = future.result()
                 if res is not None:
-                    # 排行榜列表省略單筆交易陣列以精簡傳輸，保留完整統計指標
                     item_summary = {k: v for k, v in res.items() if k != "trades"}
                     leaderboard.append(item_summary)
             except Exception as e:
                 print(f"[BatchBacktest] {sym} 略過: {e}")
 
-    # 依指定欄位進行排名
     if sort_by == "win_rate":
         leaderboard.sort(
             key=lambda x: (x["win_rate"], x["total_return_pct"], x["total_trades"]),
@@ -960,9 +971,9 @@ def backtest_stock_pool_leaderboard(
 @app.get("/api/backtest/{symbol}")
 def backtest_stock_strategy(
     symbol: str,
-    strategy: str = Query("entanglement", description="回測策略: entanglement(均線糾結突破), golden_cross(底部起漲金叉), pullback(多頭回測支撐), sop_all(SOP綜合)"),
-    period: str = Query("6mo", description="回測統計區間: 6mo (過去半年) 或 1y (過去一年)"),
-    exit_mode: str = Query("ma10_trail", description="出場策略: ma10_trail (破10日線移動停利) 或 fixed_rr (固定2R風報比)")
+    strategy: str = Query("entanglement", description="回測策略: entanglement, golden_cross, pullback, sop_all"),
+    period: str = Query("6mo", description="回測統計區間: 6mo 或 1y"),
+    exit_mode: str = Query("ma10_trail", description="出場策略: ma10_trail 或 fixed_rr")
 ):
     """林穎《學會走圖SOP》單一個股策略歷史回測 API"""
     try:
@@ -986,10 +997,10 @@ def backtest_stock_strategy(
 @app.get("/api/position-size")
 def get_position_size(
     capital: float = Query(1000000.0, description="總資金"),
-    risk_pct: float = Query(2.0, description="單筆最大可承受虧損百分比 (如 2.0 代表 2%)"),
+    risk_pct: float = Query(2.0, description="單筆最大可承受虧損百分比"),
     entry_price: float = Query(..., description="預計進場價格"),
     stop_loss: float = Query(..., description="防守停損價格"),
-    target_price: Optional[float] = Query(None, description="波段目標價格 (選填)"),
+    target_price: Optional[float] = Query(None, description="波段目標價格"),
     market: str = Query("TW", description="市場別: TW 或 US")
 ):
     """林穎《學會走圖SOP》風險控管與部位計算機 API"""
@@ -1294,4 +1305,7 @@ def get_kbars(symbol: str, period: str = "6mo", interval: str = "1d"):
 
 
 if __name__ == "__main__":
-    uvicorn.run("server:app", host="127.0.0.1", port=8000, reload=True)
+    # 自動支援雲端平台 (Render / Railway) 注入之 PORT 環境變數，本地端預設為 8000
+    port = int(os.environ.get("PORT", 8000))
+    host = os.environ.get("HOST", "0.0.0.0")
+    uvicorn.run("server:app", host=host, port=port, reload=(port == 8000))
