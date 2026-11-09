@@ -1,0 +1,84 @@
+name: Render 24H Keep-Alive Pinger
+
+on:
+  # 1. 定時排程：每 14 分鐘自動執行一次 (UTC 時間，全年無休)
+  schedule:
+    - cron: "*/14 * * * *"
+
+  # 2. 手動觸發：支援在 GitHub Actions 頁面點擊「Run workflow」立即測試
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: "自訂測試的 Render 網址 (留空則使用預設網址)"
+        required: false
+        default: ""
+
+jobs:
+  ping-render-server:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    env:
+      # ====================================================================
+      # 請將下方網址改為您在 Render 部署成功的實際網址 (結尾不要加斜線 /)
+      # 範例: https://lin-ying-sop-stock-api.onrender.com
+      # 亦可在 GitHub 儲存庫 Settings -> Secrets and variables -> Actions
+      # 新增名為 RENDER_URL 的 Variable 或 Secret 來覆蓋此設定
+      # ====================================================================
+      DEFAULT_RENDER_URL: "https://stock-system-fihw.onrender.com/"
+      SECRET_RENDER_URL: ${{ secrets.RENDER_URL }}
+      VAR_RENDER_URL: ${{ vars.RENDER_URL }}
+      INPUT_RENDER_URL: ${{ github.event.inputs.target_url }}
+
+    steps:
+      - name: 1. 解析目標 Render 伺服器網址與檢查時間
+        id: resolve_url
+        run: |
+          if [ -n "$INPUT_RENDER_URL" ]; then
+            TARGET="$INPUT_RENDER_URL"
+          elif [ -n "$SECRET_RENDER_URL" ]; then
+            TARGET="$SECRET_RENDER_URL"
+          elif [ -n "$VAR_RENDER_URL" ]; then
+            TARGET="$VAR_RENDER_URL"
+          else
+            TARGET="$DEFAULT_RENDER_URL"
+          fi
+          # 移除網址結尾多餘的斜線
+          CLEAN_URL=$(echo "$TARGET" | sed 's:/*$::')
+          echo "url=$CLEAN_URL" >> $GITHUB_OUTPUT
+          echo "🕒 執行時間 (台灣時間): $(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M:%S')"
+          echo "🎯 目標 Render 網址: $CLEAN_URL"
+
+      - name: 2. 喚醒 /health 健康檢查端點 (含自動重試與冷啟動等待)
+        run: |
+          TARGET_URL="${{ steps.resolve_url.outputs.url }}/health"
+          echo "🌐 正在 Ping 健康檢查端點: $TARGET_URL"
+          
+          # 若伺服器剛休眠，首次喚醒可能需 20~40 秒，設定最長等待 60 秒並自動重試 3 次
+          HTTP_STATUS=$(curl -s -L -o response.txt -w "%{http_code}" \
+            --max-time 60 \
+            --retry 3 \
+            --retry-delay 5 \
+            --retry-all-errors \
+            "$TARGET_URL")
+          
+          echo "📥 回應內容: $(cat response.txt)"
+          echo "📊 HTTP 狀態碼: $HTTP_STATUS"
+          
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "❌ 喚醒失敗，HTTP 狀態碼不為 200 (收到: $HTTP_STATUS)"
+            exit 1
+          fi
+          echo "✅ Render 伺服器健康檢查通過！"
+
+      - name: 3. 預熱台積電 (2330) 即時報價快取
+        run: |
+          QUOTE_URL="${{ steps.resolve_url.outputs.url }}/api/quote/2330"
+          echo "🔥 正在預熱台股報價快取: $QUOTE_URL"
+          
+          HTTP_STATUS=$(curl -s -L -o quote.txt -w "%{http_code}" --max-time 30 "$QUOTE_URL" || true)
+          if [ "$HTTP_STATUS" -eq 200 ]; then
+            echo "✅ 報價快取預熱完成: $(cat quote.txt)"
+          else
+            echo "⚠️ 報價預熱回傳狀態碼 $HTTP_STATUS (主服務仍已成功喚醒)"
+          fi
